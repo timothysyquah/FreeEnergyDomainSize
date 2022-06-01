@@ -63,16 +63,17 @@ if __name__ == "__main__":
     parser.add_argument('-d', '--dirs', action='store', default="",help='list of directories that contain each phase point')
     parser.add_argument('-f','--file',action = 'store',default = '', help = 'File to read with averages and error', type = str)
     parser.add_argument('-k','--keyloc',action = 'store',nargs='+',default = [], help = 'keywords location', type = int)
-    parser.add_argument('-k','--keytxt',action = 'store',nargs='+',default = [], help = 'keywords label', type = int)
+    parser.add_argument('-k','--keytxt',action = 'store',nargs='+',default = [''], help = 'keywords label', type = str)
     
     args = parser.parse_args()
     
     path = os.path.join(args.dirs,args.file)
     filelist = glob.glob(path)
+    print(filelist)
     paramlist = GetParameters(filelist,args.keyloc)    
     # we only allow a single parameter per line
     param_array = np.vstack(paramlist)
-    
+    print(param_array)
 
 """
 3) Average the operators 
