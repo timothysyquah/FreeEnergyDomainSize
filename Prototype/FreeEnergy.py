@@ -62,8 +62,8 @@ if __name__ == "__main__":
     #do not mix simulation methods
     parser.add_argument('-d', '--dirs', action='store', default="",help='list of directories that contain each phase point')
     parser.add_argument('-f','--file',action = 'store',default = '', help = 'File to read with averages and error', type = str)
-    parser.add_argument('-k','--keyloc',action = 'store',nargs='+',default = [], help = 'keywords location', type = int)
-    parser.add_argument('-k','--keytxt',action = 'store',nargs='+',default = [''], help = 'keywords label', type = str)
+    parser.add_argument('-kl','--keyloc',action = 'store',nargs='+',default = [], help = 'keywords location', type = int)
+    parser.add_argument('-kt','--keytxt',action = 'store',nargs='+',default = [''], help = 'keywords label', type = str)
     
     args = parser.parse_args()
     
