@@ -12,9 +12,9 @@ import sys
 sys.path.append('/home/tquah/PolyFTS_ALL/PolyFTS/tools') #gives us access to Kris' tools
 from stats import *
 import argparse
+import numpy as np
 
-
-
+import re
 
 
 """
@@ -28,25 +28,50 @@ Here we will outline the code before writing it
 * N-and definitions of C
 * This tool will not plot!
 """
+def extract_value(string):
+    return re.findall(r"[-+]?\d*\.\d+|\d+", string) #im lazy so i made a function 
 
-if __name__ == "__main__":
-    
-    IDIR = os.getcwd()
-    parser = argparse.ArgumentParser(description='Tool to Calculate Free Energy')
-    parser.add_argument('-d', '--dirs', action='store', default="",help='list of directories that contain each phase point')
-    parser.add_argument('-f','--file',action = 'store',default = '', help = 'File to read with averages and error', type = str)
-    parser.add_argument('-k','--keyword',action = 'store',nargs='+',default = [""], help = 'keywords', type = str)
-    
-    args = parser.parse_args()
-
-    path = os.path.join(args.dirs,args.file)
-    filelist = glob.glob(path)
-    
+def GetLocation(_path,_keylist):
+    _list = _path.split('/')
+    _vallist = []
+    for _key in _keylist:
+        _temp = extract_value(_list[_key])
+        _templist = []
+        if len(_temp)>1:
+            for _ele in _temp:
+                _templist.append(float(_ele))
+            _vallist.append(np.array(_templist))
+        else:
+            _vallist.append(float(_temp[0]))
+    return _vallist
+def GetParameters(_filelist,_keyloc):
+    _param_list = []
+    for _file in _filelist:
+        _param_list.append(GetLocation(_file,_keyloc))
+    return _param_list
 
 """
 2) Load data and characterize it based on directory structure and keywords
 * may need to do cleaning step here
 """
+
+if __name__ == "__main__":
+    
+    IDIR = os.getcwd()
+    parser = argparse.ArgumentParser(description='Tool to Calculate Free Energy')
+    #do not mix simulation methods
+    parser.add_argument('-d', '--dirs', action='store', default="",help='list of directories that contain each phase point')
+    parser.add_argument('-f','--file',action = 'store',default = '', help = 'File to read with averages and error', type = str)
+    parser.add_argument('-k','--keyloc',action = 'store',nargs='+',default = [], help = 'keywords location', type = int)
+    parser.add_argument('-k','--keytxt',action = 'store',nargs='+',default = [], help = 'keywords label', type = int)
+    
+    args = parser.parse_args()
+    
+    path = os.path.join(args.dirs,args.file)
+    filelist = glob.glob(path)
+    paramlist = GetParameters(filelist,args.keyloc)    
+    # we only allow a single parameter per line
+    param_array = np.vstack(paramlist)
     
 
 """
