@@ -41,6 +41,7 @@ if __name__ == "__main__":
 
     path = os.path.join(args.dirs,args.file)
     filelist = glob.glob(path)
+    
 
 """
 2) Load data and characterize it based on directory structure and keywords
