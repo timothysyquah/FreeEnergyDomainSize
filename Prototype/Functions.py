@@ -9,7 +9,11 @@ from scipy import ndimage ,signal,stats
 import numpy as np
 import re
 
+import sys
+sys.path.append('/home/tquah/PolyFTS_ALL/PolyFTS/tools') #gives us access to Kris' tools
+from stats import *
 
+from scipy.stats import mode
 
 def GaussianFilter_DyDx_Peak(_y):
     _smeary =  \
@@ -18,6 +22,27 @@ def GaussianFilter_DyDx_Peak(_y):
     _dydx = (_smeary[1:]-_smeary[0:-1])
     _peaks = signal.find_peaks(np.abs(_dydx))
     return _peaks,_dydx,_smeary
+
+def RemoveCorruptedOperatorRows(_path,newfile = "operators_clean.dat"):
+    
+    _op = open(_path,"r")
+    _rows = _op.readlines()
+    _neles = []
+    for _row in _rows:
+        _neles.append(len(_row.split(' ')))
+    _op.close()
+    _results = mode(np.array(_neles))
+    _loc = np.where(np.max(_results[1])==_results[1])[0]
+    _mele = _results[0][_loc][0]
+    
+    _lst = []
+    _lst.append(_rows[0])
+    for _row in _rows:
+        if len(_row.split(' '))==_mele:
+            _lst.append(_row)
+    _op = open(newfile,'w')
+    _op.writelines(_lst)
+    _op.close()
 
 def Generate_Test_Case(_minx,_maxx,_dx,_meany,_widthy,_numjumps):
     _jump = np.sort(np.random.randint(_minx,_maxx,_numjumps))
@@ -112,4 +137,47 @@ def ConvertToTensor(array):
     a[2,0] = array[5,0]
     a[2,1] = array[4,0]
     return a
+def GetLocation(_path,_keylist):
+    _list = _path.split('/')
+    _vallist = []
+    for _key in _keylist:
+        _temp = extract_value(_list[_key])
+        _templist = []
+        if len(_temp)>1:
+            for _ele in _temp:
+                _templist.append(float(_ele))
+            _vallist.append(np.array(_templist))
+        else:
+            _vallist.append(float(_temp[0]))
+    return _vallist
+def GetParameters(_filelist,_keyloc):
+    _param_list = []
+    for _file in _filelist:
+        _param_list.append(GetLocation(_file,_keyloc))
+    return _param_list
 
+def GetOperators(_file,_operators,_operator_track):
+    _op = open(_file,'r')
+    _col_list = []
+    _col_track = decideColumn(_op,_operator_track)
+    _warm,_prod,_idx = autoWarmupMSER(_op, _col_track)
+    _warm,_data = extractData(_op,_col_track,_idx)
+    _datalist = []
+    _warmdatalist = []
+    _datalist.append(_data)
+    _warmdatalist.append(_warm)
+    for _operate in _operators:
+        _col = decideColumn(_op,_operate)
+        _warm,_data = extractData(_op,_col,_idx)
+        _datalist.append(_data)
+        _warmdatalist.append(_warm)
+    _op.close()
+    _operators = [_operator_track]+_operators
+    return _operators, np.vstack(_datalist).transpose(), np.vstack(_warmdatalist).transpose()
+
+
+def Make_Header(_list):
+    _str = ''
+    for _ele in _list:
+        _str+=_ele+' '
+    return _str
