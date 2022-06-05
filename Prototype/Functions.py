@@ -15,6 +15,65 @@ from stats import *
 
 from scipy.stats import mode
 
+
+
+def autoWarmupMSER_(data, debug=False):
+    # Algorithm:
+    # - Load all data
+    # - Compute SEM with d samples truncated from beginning. The samples are supposed to be batch-averaged. This will be the case in most simulation data anyway.
+    # - Find the value of d that minimizes SEM. This is the warmup length.
+
+    # MSER-5 - pre-block-average the data in chunks of 5 steps, and truncate integer counts of those steps
+    m = 5 # Block size
+    N = len(data)
+    # Data will be padded in such a way that block average is not modified.
+    # We are short by m-N%m points to make N/m an integer.
+    # Then do the block averaging
+    if N%m != 0:
+        #dataint = np.pad(data, (0,m-N%m), mode='mean', stat_length=N%m)
+        #databa = np.mean(dataint.reshape(int(N/m), m), axis=1)
+        databa = np.mean(np.pad(data, (0,m-N%m), mode='mean', stat_length=N%m).reshape(int(N/m)+1, m), axis=1)
+        N = N + m - N%m
+    else:
+        databa = np.mean(data.reshape(int(N/m), m), axis=1)
+
+    if debug:
+        fileout = open("debugMSER.dat","w")
+    SEMlist=[]
+    fullsize = len(databa)
+    while True:
+      # It is slow to do a full correlation-corrected statistical analysis in the inner loop
+      # Rather than computing everything, just use correlation biased SEM
+#      (n,(min,max),mean,semcc,kappa,unbiasedvar,autocor)=doStats(dummy,databa,False,False)
+      sem = stats.sem(databa)
+#      var = unbiasedvar * (n-1)/n # The MSER method uses the biased sample variance as a measure of homogeneity of the data
+#      VARlist.append(var)
+#      SEMlist.append(semcc)
+      SEMlist.append(sem)
+      if debug:
+          fileout.write("{0} {1}\n".format(len(databa),sem))
+      # Ensure we don't go below 25% of data remaining or 5 samples or that we don't iterate more than 1000 times.
+      Nrem = len(databa)
+      if Nrem <= 0.25*fullsize or Nrem < 5:
+          break
+      # TO DO: replace with masked array to avoid repeated copy
+      databa = databa[1:] # Delete the first m elements
+
+    if debug:
+        fileout.close()
+
+    # Find the index that minimizes the variance
+    idx = np.argmin(SEMlist) # idx is therefore the number of warmup blocks to be removed; m*idx is # samples
+    idx = idx*m
+
+    if idx > 0:
+        warmupdata = data[:idx-1]
+    else:
+        warmupdata = np.empty([0])
+    proddata   = data[idx:]
+
+    return warmupdata, proddata, idx
+
 def GaussianFilter_DyDx_Peak(_y):
     _smeary =  \
         ndimage.gaussian_filter(_y,(np.max(_y)-np.min(_y)))
@@ -156,7 +215,7 @@ def GetParameters(_filelist,_keyloc):
         _param_list.append(GetLocation(_file,_keyloc))
     return _param_list
 
-def GetOperators(_file,_operators,_operator_track):
+def GetOperators_Fancy(_file,_operators,_operator_track):
     _op = open(_file,'r')
     _col_list = []
     _col_track = decideColumn(_op,_operator_track)
@@ -174,6 +233,22 @@ def GetOperators(_file,_operators,_operator_track):
     _op.close()
     _operators = [_operator_track]+_operators
     return _operators, np.vstack(_datalist).transpose(), np.vstack(_warmdatalist).transpose()
+
+def GetOperators(_file,_operators):
+    _op = open(_file,'r')
+    _col_list = []
+    _datalist = []
+    _warmdatalist = []
+    for _operate in _operators:
+        _col = decideColumn(_op,_operate)
+        _warm,_data = extractData(_op,_col,0)
+        _datalist.append(_data)
+        _warmdatalist.append(_warm)
+    _op.close()
+    return np.vstack(_datalist).transpose(), np.vstack(_warmdatalist).transpose()
+
+
+
 
 
 def Make_Header(_list):

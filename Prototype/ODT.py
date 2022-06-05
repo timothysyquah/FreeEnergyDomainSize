@@ -54,18 +54,21 @@ if __name__ == "__main__":
 
     for i in range(0,len(C)):
         plt.figure()
-        plt.title(f"C={C[i]}")
+        plt.title(f"C={10*C[i]}")
         for j in range(0,len(header)):
 
             loc = np.where(C[i]==data_dictionary[header[j]][:,0])[0]
-            plt.errorbar(data_dictionary[header[j]][loc,args.column[1]],\
-                         data_dictionary[header[j]][loc,args.column[2]]-data_dictionary['DIS'][loc,args.column[2]],\
+            plt.errorbar(100*data_dictionary[header[j]][loc,args.column[1]],\
+                         data_dictionary[header[j]][loc,args.column[2]],\
                          yerr = data_dictionary[header[j]][loc,args.column[3]],label = header[j],marker = markerlist[j])
         plt.legend()
+        plt.xlabel(r'$\chi N$')
+        plt.ylabel(r'$\beta A_{ex}/n$')
+        plt.tight_layout()
+        plt.savefig(f'/home/tquah/Figures/C{10*C[i]}_PFTS.pdf',dpi = 300)
+
     
     if args.plot:
         plt.errorbar(data_dictionary['DIS'][1,:],data_dictionary['DIS'][-2,:] )
         plt.errorbar(data_dictionary['LAM'][1,:],data_dictionary['LAM'][-2,:] )
-
-    
 
