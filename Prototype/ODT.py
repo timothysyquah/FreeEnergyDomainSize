@@ -30,6 +30,11 @@ if __name__ == "__main__":
     
     args.input = ["CL_DISPhase.dat","CL_LAMPhase.dat"]
     # args.input = ["PFTS_DISPhase.dat","PFTS_LAMPhase.dat"]
+    
+    Fdat =  np.loadtxt('FSCFT.dat')
+    sort = np.argsort(Fdat[:,0])
+    Fdat = Fdat[sort,:]
+    
     markerlist = ['^','s']
     args.column = [0,1,-2,-1]
 
@@ -56,10 +61,18 @@ if __name__ == "__main__":
         plt.figure()
         plt.title(f"C={10*C[i]}")
         for j in range(0,len(header)):
+            H = []
+            
+
 
             loc = np.where(C[i]==data_dictionary[header[j]][:,0])[0]
+            
+            for k in range(len(data_dictionary[header[j]][loc,args.column[1]])):
+                loc1 = np.where(data_dictionary[header[j]][loc,args.column[1]][k]==Fdat[:,0])[0]
+                H.append(Fdat[loc1])
+            H = np.vstack(H)
             plt.errorbar(100*data_dictionary[header[j]][loc,args.column[1]],\
-                         data_dictionary[header[j]][loc,args.column[2]],\
+                         data_dictionary[header[j]][loc,args.column[2]]-100*H[:,3],\
                          yerr = data_dictionary[header[j]][loc,args.column[3]],label = header[j],marker = markerlist[j])
         plt.legend()
         plt.xlabel(r'$\chi N$')
