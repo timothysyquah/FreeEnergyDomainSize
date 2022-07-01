@@ -179,6 +179,8 @@ def PrunePath(path,skip):
         i+=1
         if i==maxcount-skip:
             break
+        elif skip==-1 and i==maxcount-1:
+            break
     return newpath
         
 def ConvertToTensor(array):

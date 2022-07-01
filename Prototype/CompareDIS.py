@@ -28,25 +28,28 @@ if __name__ == "__main__":
     args = parser.parse_args()
     data_dictionary = dict()
     
-    args.input = ["eCL_DISPhase.dat","CL_LAMPhase.dat"]
+    args.input = ["CL_LAMPhase.dat","CL_DISPhase.dat","sCL_DISPhase.dat"]
     # args.input = ["PFTS_DISPhase.dat","PFTS_LAMPhase.dat"]
     
     Fdat =  np.loadtxt('FSCFT.dat')
     sort = np.argsort(Fdat[:,0])
     Fdat = Fdat[sort,:]
     
-    markerlist = ['^','s']
+    markerlist = ['^','s','p']
     args.column = [0,1,-2,-1]
-    N = 1
-    sqrtN = np.sqrt(N)
-    for file in args.input:
-        if "DIS" in file:
-            data_dictionary['DIS'] = np.loadtxt(file)
-            data_dictionary['DIS'][:,0] *= 10
-            data_dictionary['DIS'][:,1] *= 100
 
-        elif "LAM" in file:
-            data_dictionary['LAM'] = np.loadtxt(file)
+    for file in args.input:
+        print(file)
+        if "sCL" in file:
+            data_dictionary['sCL'] = np.loadtxt(file)
+    
+        elif "CL" in file:
+            if "sCL" not in file and "LAM" not in file:
+                
+                data_dictionary['CL'] = np.loadtxt(file)
+            if "LAM" in file:
+                data_dictionary['LAM'] = np.loadtxt(file)
+
         else:
             print('Only Supports LAM and DIS ODT')
     
@@ -58,32 +61,32 @@ if __name__ == "__main__":
     for i in range(0,len(header)):
         C += list(np.unique(data_dictionary[header[i]][:,args.column[0]]))
     C = np.unique(np.array(C))
-
+    name = ['LAM',r'$L_i = 60 \: l$',r'$L_i = 30 \: l$']
     for i in range(0,len(C)):
         plt.figure()
-        plt.title(f"C={sqrtN*C[i]}")
+        plt.title(f"C={10*C[i]}")
         for j in range(0,len(header)):
-            # H = []
+            H = []
             
 
 
             loc = np.where(C[i]==data_dictionary[header[j]][:,0])[0]
             
-            # for k in range(len(data_dictionary[header[j]][loc,args.column[1]])):
-            #     loc1 = np.where(data_dictionary[header[j]][loc,args.column[1]][k]==Fdat[:,0])[0]
-            #     H.append(Fdat[loc1])
-            # H = np.vstack(H)
-            # H[:,3] = np.ones_like()
-            plt.errorbar(N*data_dictionary[header[j]][loc,args.column[1]],\
-                         data_dictionary[header[j]][loc,args.column[2]],\
-                         yerr = data_dictionary[header[j]][loc,args.column[3]],label = header[j],marker = markerlist[j])
+            for k in range(len(data_dictionary[header[j]][loc,args.column[1]])):
+                loc1 = np.where(data_dictionary[header[j]][loc,args.column[1]][k]==Fdat[:,0])[0]
+                H.append(Fdat[loc1])
+            H = np.vstack(H)
+            H[:,3] = 0
+            plt.errorbar(100*data_dictionary[header[j]][loc,args.column[1]],\
+                         data_dictionary[header[j]][loc,args.column[2]]-H[:,3]*100,\
+                         yerr = data_dictionary[header[j]][loc,args.column[3]],label = name[j],marker = markerlist[j])
 
                 
         plt.legend()
         plt.xlabel(r'$\chi N$')
-        plt.ylabel(r'$(\beta A_{ex}-\beta A_{SCFT,DIS})/n$')
+        plt.ylabel(r'$(\beta A_{ex})/n$')
         plt.tight_layout()
-        plt.savefig(f'/home/tquah/Figures/C{sqrtN*C[i]}_FTS.svg',dpi = 300)
+        plt.savefig(f'/home/tquah/Figures/C{10*C[i]}_FTS.pdf',dpi = 300)
 
     
     # if args.plot:

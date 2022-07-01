@@ -58,8 +58,6 @@ if __name__ == "__main__":
     parser.add_argument('-ed','--exportpath',action = 'store',default = '', help = 'path to export', type = str)
     parser.add_argument('-e','--exportname',action = 'store',default = '', help = 'name to export', type = str)
     parser.add_argument('-eft','--exporttraj',action = 'store',default = False, help = 'export free energy trajectory', type = bool)
-    parser.add_argument('-efn','--exporttrajname',action = 'store',default = "F.dat", help = 'export free energy trajectory', type = str)
-
     parser.add_argument('-v','--verbose',action = 'store',default = True, help = 'Output More Details', type = bool)
     # parser.add_argument('-at','--averagingtype',action = 'store',default = 'FECOMBINE', help = longdes, type = bool)
 
@@ -104,13 +102,14 @@ if __name__ == "__main__":
         # print(param_array)
         # print(args.keytxt)
         # print(Cindex)
+        warmupdata3, mueq, idx = autoWarmupMSER_(data[:,0])
+
         warmupdata1, Feq, idx = autoWarmupMSER_(Farray)
         warmupdata2, Peq, idx = autoWarmupMSER_(P)
-        warmupdata3, mueq, idx = autoWarmupMSER_(data[:,0])
         
-        nsamples,bounds_F,mean_F,semcc_F,kappa_F,unbiasedvar_F,autocor_F = doStats(np.array([]), Feq)
+        nsamples,bounds_F,mean_F,semcc_F,kappa_F,unbiasedvar_F,autocor_F = doStats(np.array([]), Farray[idx:])
         # print(mean_F)
-        nsamples,bounds_P,mean_P,semcc_P,kappa_P,unbiasedvar_P,autocor_P = doStats(np.array([]), Peq)
+        nsamples,bounds_P,mean_P,semcc_P,kappa_P,unbiasedvar_P,autocor_P = doStats(np.array([]), P[idx:])
         nsamples,bounds_Sx,mean_Sx,semcc_Sx,kappa_Sx,unbiasedvar_Sx,autocor_Sx = doStats(np.array([]), data[:,1])
         nsamples,bounds_Sy,mean_Sy,semcc_Sy,kappa_Sy,unbiasedvar_Sy,autocor_Sy = doStats(np.array([]), data[:,2])
         nsamples,bounds_Sz,mean_Sz,semcc_Sz,kappa_Sz,unbiasedvar_Sz,autocor_Sz = doStats(np.array([]), data[:,3])
@@ -128,7 +127,7 @@ if __name__ == "__main__":
             outputlist.append(Farray)
             array = np.vstack(outputlist).transpose()
             bpath = PrunePath(filelist[i],-1)
-            Fpath = os.path.join(bpath,args.exporttrajname)
+            Fpath = os.path.join(bpath,'F.dat')
             print(Fpath)
             np.savetxt(Fpath,array,header = 'mu P F')
         if args.verbose:
