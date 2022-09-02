@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os 
 plt.close('all')
-period = 3
+period = 2
 os.chdir(f'/home/tquah/DataStore/{period}Period')
 if __name__ == "__main__":
     IDIR = os.getcwd()
@@ -28,12 +28,12 @@ if __name__ == "__main__":
     # parser.add_argument('-p','--plot',action = 'store',default = True, help = 'Plot?', type = bool)
     args = parser.parse_args()
     data_dictionary = dict()
-    stress = True
+    stress = False
     OP = True
-    Job = 'PFTS'
+    Job = 'FTS'
     args.input = ["CL_DISPhase.dat","CL_LAMPhase.dat"]
-    args.input = ["PartialFTS_DISPhase.dat","PartialFTS_LAMPhase.dat"]
-    
+    # args.input = ["PartialFTS_DISPhase.dat","PartialFTS_LAMPhase.dat"]
+    # 
     # Fdat =  np.loadtxt('FSCFT.dat')
     # sort = np.argsort(Fdat[:,0])
     # Fdat = Fdat[sort,:]
@@ -116,8 +116,8 @@ if __name__ == "__main__":
                     ax1.scatter(N*data_dictionary[header[j]][loc,args.column[1]][l],\
                                  data_dictionary[header[j]][loc,args.column[2]][l]-norm[l],s = 500.0\
                                  ,zorder = 1,marker = 'o',color = 'k',alpha = alist[j][l]/maxn)
-        if sqrtN*C[i]>100:
-            ax1.axvline(np.array([12.0382]),color = 'k',linestyle = '--')
+    
+        ax1.axvline(np.array([12.0382]),color = 'k',linestyle = '--')
         
         ax1.set_xlabel(r'$\chi N$')
         ax1.set_ylabel(r'$\beta F/n -\beta F_{DIS}/n$')
@@ -138,7 +138,9 @@ if __name__ == "__main__":
         plt.tight_layout()
         plt.savefig(f'/home/tquah/Figures/C{sqrtN*C[i]}_{Job}_N100_period_{period}.pdf',dpi = 300)
 
-
     
     # if args.plot:
+    #     plt.figure()
+    #     plt.errorbar(data_dictionary['DIS'][1,:],data_dictionary['DIS'][-2,:] )
+    #     plt.errorbar(data_dictionary['LAM'][1,:],data_dictionary['LAM'][-2,:] )
 
