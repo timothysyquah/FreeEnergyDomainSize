@@ -119,7 +119,7 @@ if __name__ == "__main__":
 
     parser.add_argument('-at','--averagingtype',default = FEALL, help = "Different Averaging Methods",choices=FUNCTION_MAP.keys())
     parser.add_argument('-w','--warmup',default = 0, help = "Warmup",type = int)
-    parser.add_argument('--ignorestatus', action='store', default=[1,3], nargs='+',help='status to ignore')
+    parser.add_argument('--ignorestatus', action='store', default=[], nargs='+',help='status to ignore')
 
 
 
